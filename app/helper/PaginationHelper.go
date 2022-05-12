@@ -7,29 +7,46 @@ import (
 )
 
 type Pagination struct {
-	Page       int         `json:"page"`
-	Limit      int         `json:"limit"`
-	Sort       string      `json:"sort,omitempty"`
-	TotalRows  int         `json:"total_rows"`
-	TotalPages int         `json:"total_pages"`
-	Data       interface{} `json:"data"`
+	TotalRows  int `json:"total_rows"`
+	TotalPages int `json:"total_pages"`
 }
 
-type PaginationRepository struct {
-	Result interface{} // contains data and count data
-	Error  error
+type PaginationQuery struct {
+	Page  int    `json:"page,omitempty"`
+	Limit int    `json:"limit,omitempty"`
+	Order string `json:"order,omitempty"`
+	Sort  string `json:"sort,omitempty"`
 }
 
-type PaginationResponse struct {
-	Links interface{} `json:"links"`
-	Data  interface{} `json:"data"`
+type Pages struct {
+	First    string `json:"first_url,omitempty"`
+	Next     string `json:"next_url,omitempty"`
+	Previous string `json:"previous_url,omitempty"`
+	Last     string `json:"last_url,omitempty"`
 }
 
-func GeneratePagination(c *gin.Context) *Pagination {
+func GeneratePagination() *Pagination {
+	return &Pagination{
+		TotalRows:  0,
+		TotalPages: 0,
+	}
+}
+
+func GeneratePage() *Pages {
+	return &Pages{
+		First:    "",
+		Next:     "",
+		Previous: "",
+		Last:     "",
+	}
+}
+
+func GeneratePaginationQuery(c *gin.Context) *PaginationQuery {
 	// set default value
 	page := 1
 	limit := 10
-	sort := "id desc"
+	order := "id"
+	sort := "desc"
 
 	querys := c.Request.URL.Query()
 
@@ -44,20 +61,24 @@ func GeneratePagination(c *gin.Context) *Pagination {
 		case "limit":
 			limit, _ = strconv.Atoi(qValue)
 			break switchLabel
+		case "order":
+			order = qValue
+			break switchLabel
 		case "sort":
 			sort = qValue
 			break switchLabel
 		}
 	}
 
-	return &Pagination{
+	return &PaginationQuery{
 		Page:  page,
 		Limit: limit,
+		Order: order,
 		Sort:  sort,
 	}
 }
 
-func (p *Pagination) GetPage() int {
+func (p *PaginationQuery) GetPage() int {
 	if p.Page == 0 {
 		p.Page = 1
 	}
@@ -65,7 +86,7 @@ func (p *Pagination) GetPage() int {
 	return p.Page
 }
 
-func (p *Pagination) GetLimit() int {
+func (p *PaginationQuery) GetLimit() int {
 	if p.Limit == 0 {
 		p.Limit = 10
 	}
@@ -73,15 +94,23 @@ func (p *Pagination) GetLimit() int {
 	return p.Limit
 }
 
-func (p *Pagination) GetSort() string {
+func (p *PaginationQuery) GetOrder() string {
+	if p.Order == "" {
+		p.Order = "id"
+	}
+
+	return p.Order
+}
+
+func (p *PaginationQuery) GetSort() string {
 	if p.Sort == "" {
-		p.Sort = "id desc"
+		p.Sort = "desc"
 	}
 
 	return p.Sort
 }
 
-func (p *Pagination) GetOffset() int {
+func (p *PaginationQuery) GetOffset() int {
 	offset := (p.GetPage() - 1) * p.GetLimit()
 
 	return offset
