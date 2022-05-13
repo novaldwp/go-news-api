@@ -31,8 +31,10 @@ type HelperResponseWithDataStruct struct {
 type HelperResponsePaginateStruct struct {
 	Status  bool        `json:"status"`
 	Message string      `json:"message"`
-	Links   interface{} `json:"links"`
+	Query   interface{} `json:"query"`
 	Data    interface{} `json:"data"`
+	Meta    interface{} `json:"meta"`
+	Link    interface{} `json:"link,omitempty"`
 }
 
 func SuccessResponse(model string, action string) HelperResponseStruct {
@@ -52,12 +54,14 @@ func SuccessResponseWithData(model string, action string, data interface{}) Help
 	}
 }
 
-func SuccessResponsePaginate(model string, action string, links interface{}, data interface{}) HelperResponsePaginateStruct {
+func SuccessResponsePaginate(model string, action string, meta *Pagination, query *PaginationQuery, link *Pages, data interface{}) HelperResponsePaginateStruct {
 
 	return HelperResponsePaginateStruct{
 		Status:  true,
 		Message: typeAction(action) + model,
-		Links:   links,
+		Meta:    meta,
+		Query:   query,
+		Link:    link,
 		Data:    data,
 	}
 }
