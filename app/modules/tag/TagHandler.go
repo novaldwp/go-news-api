@@ -43,21 +43,31 @@ func (h *tagHandler) GetTags(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// get all tags with pagination setting from query parameters e.g => page, limit, order, sort
+// get all pagination tags with query parameters e.g => page, limit, order, sort
 func (h *tagHandler) Paginate(c *gin.Context) {
-	urlPath := c.Request.URL.Path
-	pagination := helper.GeneratePagination(c)
+	// set app url
+	appHOST := c.Request.Host     // www.example.com/
+	urlPATH := c.Request.URL.Path // api/v1/handler/function
+	appPATH := appHOST + urlPATH  // www.example.com/api/v1/handler/function
 
-	data, err := h.service.Pagination(pagination, urlPath)
+	// generate struct helper
+	meta := helper.GeneratePagination()
+	query := helper.GeneratePaginationQuery(c)
+	page := helper.GeneratePage()
+
+	// get result pagination
+	result, err := h.service.Pagination(meta, query, page, appPATH)
 
 	if err != nil {
 		response := helper.ErrorResponse(err)
 		c.JSON(http.StatusInternalServerError, response)
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"data": data,
-	})
+	// convert result
+	convertResponse := responses.ToTagResponses(result)
+	response := helper.SuccessResponsePaginate("paginate tags", "get", meta, query, page, convertResponse)
+
+	c.JSON(http.StatusOK, response)
 }
 
 // get a single tag by param id

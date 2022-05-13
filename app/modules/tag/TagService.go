@@ -1,6 +1,8 @@
 package tag
 
 import (
+	"fmt"
+
 	"github.com/gosimple/slug"
 	"github.com/novaldwp/go-news-api/app/helper"
 	"github.com/novaldwp/go-news-api/app/requests"
@@ -8,7 +10,7 @@ import (
 )
 
 type TagServiceInterface interface {
-	Pagination(pagination *helper.Pagination, urlPath string) (helper.PaginationResponse, error)
+	Pagination(pagination *helper.Pagination, query *helper.PaginationQuery, pages *helper.Pages, urlPath string) ([]models.Tag, error)
 	GetTags(status string) ([]models.Tag, error)
 	GetTagById(tagId int) (models.Tag, error)
 	CreateTag(tagRequest requests.CreateTagRequest) error
@@ -100,12 +102,34 @@ func (s *tagService) DeleteTag(tagId int) error {
 	return err
 }
 
-func (s *tagService) Pagination(pagination *helper.Pagination, urlPath string) (helper.PaginationResponse, error) {
-	result := s.repository.Pagination(pagination)
+func (s *tagService) Pagination(pagination *helper.Pagination, query *helper.PaginationQuery, pages *helper.Pages, appPATH string) ([]models.Tag, error) {
+	result, err := s.repository.Pagination(pagination, query)
+	first, next, previous, last := "", "", "", ""
 
-	if result.Error != nil {
-		return helper.PaginationResponse{}, result.Error
+	if query.Page != 1 {
+		first = fmt.Sprintf("%s?page=%d&limit=%d&order=%s&sort=%s", appPATH, 1, query.Limit, query.Order, query.Sort)
 	}
 
-	return helper.PaginationResponse{Data: result.Result}, nil
+	if query.Page+1 != pagination.TotalPages {
+		next = fmt.Sprintf("%s?page=%d&limit=%d&order=%s&sort=%s", appPATH, query.Page+1, query.Limit, query.Order, query.Sort)
+	}
+
+	if query.Page != 2 {
+		previous = fmt.Sprintf("%s?page=%d&limit=%d&order=%s&sort=%s", appPATH, query.Page-1, query.Limit, query.Order, query.Sort)
+	}
+
+	if query.Page < pagination.TotalPages {
+		last = fmt.Sprintf("%s?page=%d&limit=%d&order=%s&sort=%s", appPATH, pagination.TotalPages, query.Limit, query.Order, query.Sort)
+	}
+
+	pages.First = first
+	pages.Next = next
+	pages.Previous = previous
+	pages.Last = last
+
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }

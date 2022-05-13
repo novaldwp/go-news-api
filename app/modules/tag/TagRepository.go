@@ -1,6 +1,7 @@
 package tag
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/novaldwp/go-news-api/app/helper"
@@ -9,7 +10,7 @@ import (
 )
 
 type TagRepositoryInterface interface {
-	Pagination(pagination *helper.Pagination) *helper.PaginationRepository
+	Pagination(pagination *helper.Pagination, query *helper.PaginationQuery) ([]models.Tag, error)
 	GetTags() ([]models.Tag, error)
 	GetActiveTags() ([]models.Tag, error)
 	GetNonActiveTags() ([]models.Tag, error)
@@ -77,28 +78,26 @@ func (r *tagRepository) DeleteTag(tag models.Tag) error {
 	return err
 }
 
-func (r *tagRepository) Pagination(p *helper.Pagination) *helper.PaginationRepository {
-	var tags []models.Category
+func (r *tagRepository) Pagination(p *helper.Pagination, q *helper.PaginationQuery) ([]models.Tag, error) {
+	var tags []models.Tag
 	var totalRows int64 = 0
 
 	// get data tags
-	err := r.db.Order(p.GetSort()).Limit(p.GetLimit()).Offset(p.GetOffset()).Find(&tags).Error
-	if err != nil {
-		return &helper.PaginationRepository{Error: err}
+	if err := r.db.Order(fmt.Sprintf("%s %s", q.Order, q.Sort)).Limit(q.GetLimit()).Offset(q.GetOffset()).Find(&tags).Error; err != nil {
+		return nil, err
 	}
 
 	// get total rows
 	if err := r.db.Model(&tags).Count(&totalRows).Error; err != nil {
-		return &helper.PaginationRepository{Error: err}
+		return nil, err
 	}
 
 	// get total page
-	totalPages := int(math.Ceil(float64(totalRows) / float64(p.GetLimit())))
+	totalPages := int(math.Ceil(float64(totalRows) / float64(q.GetLimit())))
 
-	// set pagination with value
-	p.Data = tags
+	// set pagination value
 	p.TotalRows = int(totalRows)
 	p.TotalPages = totalPages
 
-	return &helper.PaginationRepository{Result: p}
+	return tags, nil
 }
