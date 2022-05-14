@@ -54,7 +54,7 @@ func SuccessResponseWithData(model string, action string, data interface{}) Help
 	}
 }
 
-func SuccessResponsePaginate(model string, action string, meta *Pagination, query *PaginationQuery, link *Pages, data interface{}) HelperResponsePaginateStruct {
+func SuccessResponsePaginate(model string, action string, meta *Pagination, query *PaginationQuery, link *PaginationLink, data interface{}) HelperResponsePaginateStruct {
 
 	return HelperResponsePaginateStruct{
 		Status:  true,

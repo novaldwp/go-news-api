@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -18,22 +19,24 @@ type PaginationQuery struct {
 	Sort  string `json:"sort,omitempty"`
 }
 
-type Pages struct {
+type PaginationLink struct {
+	Current  string `json:"current_link,omitempty"`
 	First    string `json:"first_url,omitempty"`
 	Next     string `json:"next_url,omitempty"`
 	Previous string `json:"previous_url,omitempty"`
 	Last     string `json:"last_url,omitempty"`
 }
 
-func GeneratePagination() *Pagination {
+func NewPagination() *Pagination {
 	return &Pagination{
 		TotalRows:  0,
 		TotalPages: 0,
 	}
 }
 
-func GeneratePage() *Pages {
-	return &Pages{
+func NewPaginationLink() *PaginationLink {
+	return &PaginationLink{
+		Current:  "",
 		First:    "",
 		Next:     "",
 		Previous: "",
@@ -41,7 +44,37 @@ func GeneratePage() *Pages {
 	}
 }
 
-func GeneratePaginationQuery(c *gin.Context) *PaginationQuery {
+func GeneratePaginationLink(appPATH string, pagination *Pagination, query *PaginationQuery, link *PaginationLink) {
+	current, first, next, previous, last := "", "", "", "", ""
+
+	if query.Page <= pagination.TotalPages {
+		current = fmt.Sprintf("%s?page=%d&limit=%d&order=%s&sort=%s", appPATH, query.Page, query.Limit, query.Order, query.Sort)
+	}
+
+	if query.Page != 1 {
+		first = fmt.Sprintf("%s?page=%d&limit=%d&order=%s&sort=%s", appPATH, 1, query.Limit, query.Order, query.Sort)
+	}
+
+	if query.Page+1 != pagination.TotalPages && query.Page < pagination.TotalPages {
+		next = fmt.Sprintf("%s?page=%d&limit=%d&order=%s&sort=%s", appPATH, query.Page+1, query.Limit, query.Order, query.Sort)
+	}
+
+	if pagination.TotalPages > 2 && query.Page > 2 && query.Page <= pagination.TotalPages {
+		previous = fmt.Sprintf("%s?page=%d&limit=%d&order=%s&sort=%s", appPATH, query.Page-1, query.Limit, query.Order, query.Sort)
+	}
+
+	if query.Page < pagination.TotalPages && pagination.TotalPages != 1 {
+		last = fmt.Sprintf("%s?page=%d&limit=%d&order=%s&sort=%s", appPATH, pagination.TotalPages, query.Limit, query.Order, query.Sort)
+	}
+
+	link.Current = current
+	link.First = first
+	link.Next = next
+	link.Previous = previous
+	link.Last = last
+}
+
+func NewPaginationQuery(c *gin.Context) *PaginationQuery {
 	// set default value
 	page := 1
 	limit := 10
