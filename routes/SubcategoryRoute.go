@@ -20,6 +20,7 @@ func SubcategoryRoutes(db *gorm.DB, v1 *gin.RouterGroup) {
 	route := v1.Group("/subcategories")
 	{
 		route.GET("/", subcategoryHandler.GetSubcategories)
+		route.GET("/paginate", subcategoryHandler.Paginate)
 		route.GET("/:id", subcategoryHandler.GetSubcategory)
 		route.POST("/", subcategoryHandler.CreateSubcategory)
 		route.PATCH("/:id", subcategoryHandler.UpdateSubcategory)

@@ -2,11 +2,13 @@ package subcategory
 
 import (
 	"github.com/gosimple/slug"
+	"github.com/novaldwp/go-news-api/app/helper"
 	"github.com/novaldwp/go-news-api/app/requests"
 	"github.com/novaldwp/go-news-api/models"
 )
 
 type SubcategoryServiceInterface interface {
+	Pagination(pagination *helper.Pagination, query *helper.PaginationQuery, link *helper.PaginationLink, urlPath string) ([]models.Subcategory, error)
 	GetSubcategories(status string) ([]models.Subcategory, error)
 	GetSubcategoryById(subcategoryId int) (models.Subcategory, error)
 	CreateSubcategory(subcategoryRequest requests.CreateSubcategoryRequest) error
@@ -97,4 +99,17 @@ func (s *subcategoryService) DeleteSubcategory(subcategoryId int) error {
 	err := s.repository.DeleteSubcategory(subcategory)
 
 	return err
+}
+
+func (s *subcategoryService) Pagination(pagination *helper.Pagination, query *helper.PaginationQuery, link *helper.PaginationLink, appPATH string) ([]models.Subcategory, error) {
+	result, err := s.repository.Pagination(pagination, query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// set pagination link
+	helper.GeneratePaginationLink(appPATH, pagination, query, link)
+
+	return result, nil
 }

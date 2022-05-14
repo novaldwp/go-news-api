@@ -45,6 +45,33 @@ func (h *subcategoryHandler) GetSubcategories(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+// get all pagination tags with query parameters e.g => page, limit, order, sort
+func (h *subcategoryHandler) Paginate(c *gin.Context) {
+	// set app url
+	appHOST := c.Request.Host     // www.example.com/
+	urlPATH := c.Request.URL.Path // api/v1/handler/function
+	appPATH := appHOST + urlPATH  // www.example.com/api/v1/handler/function
+
+	// generate struct helper
+	meta := helper.NewPagination()
+	query := helper.NewPaginationQuery(c)
+	link := helper.NewPaginationLink()
+
+	// get result pagination
+	result, err := h.sService.Pagination(meta, query, link, appPATH)
+
+	if err != nil {
+		response := helper.ErrorResponse(err)
+		c.JSON(http.StatusInternalServerError, response)
+	}
+
+	// convert result
+	convertResponse := responses.ToSubcategoryResponses(result)
+	response := helper.SuccessResponsePaginate("paginate subcategories", "get", meta, query, link, convertResponse)
+
+	c.JSON(http.StatusOK, response)
+}
+
 // get a single category by param id
 func (h *subcategoryHandler) GetSubcategory(c *gin.Context) {
 	// convert param id to int
