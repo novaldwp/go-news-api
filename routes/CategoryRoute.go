@@ -17,6 +17,7 @@ func CategoryRoutes(db *gorm.DB, v1 *gin.RouterGroup) {
 	route := v1.Group("/categories")
 	{
 		route.GET("/", categoryHandler.GetCategories)
+		route.GET("/paginate", categoryHandler.Paginate)
 		route.GET("/:id", categoryHandler.GetCategory)
 		route.POST("/", categoryHandler.CreateCategory)
 		route.PATCH("/:id", categoryHandler.UpdateCategory)

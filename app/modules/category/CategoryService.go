@@ -2,11 +2,13 @@ package category
 
 import (
 	"github.com/gosimple/slug"
+	"github.com/novaldwp/go-news-api/app/helper"
 	"github.com/novaldwp/go-news-api/app/requests"
 	"github.com/novaldwp/go-news-api/models"
 )
 
 type CategoryServiceInterface interface {
+	Pagination(pagination *helper.Pagination, query *helper.PaginationQuery, link *helper.PaginationLink, urlPath string) ([]models.Category, error)
 	GetCategories(status string) ([]models.Category, error)
 	GetCategoryById(categoryId int) (models.Category, error)
 	CreateCategory(categoryRequest requests.CreateCategoryRequest) error
@@ -96,4 +98,17 @@ func (s *categoryService) DeleteCategory(categoryId int) error {
 	err := s.repository.DeleteCategory(category)
 
 	return err
+}
+
+func (s *categoryService) Pagination(pagination *helper.Pagination, query *helper.PaginationQuery, link *helper.PaginationLink, appPATH string) ([]models.Category, error) {
+	result, err := s.repository.Pagination(pagination, query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// set pagination link
+	helper.GeneratePaginationLink(appPATH, pagination, query, link)
+
+	return result, nil
 }
