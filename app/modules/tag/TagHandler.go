@@ -51,12 +51,12 @@ func (h *tagHandler) Paginate(c *gin.Context) {
 	appPATH := appHOST + urlPATH  // www.example.com/api/v1/handler/function
 
 	// generate struct helper
-	meta := helper.GeneratePagination()
-	query := helper.GeneratePaginationQuery(c)
-	page := helper.GeneratePage()
+	meta := helper.NewPagination()
+	query := helper.NewPaginationQuery(c)
+	link := helper.NewPaginationLink()
 
 	// get result pagination
-	result, err := h.service.Pagination(meta, query, page, appPATH)
+	result, err := h.service.Pagination(meta, query, link, appPATH)
 
 	if err != nil {
 		response := helper.ErrorResponse(err)
@@ -65,7 +65,7 @@ func (h *tagHandler) Paginate(c *gin.Context) {
 
 	// convert result
 	convertResponse := responses.ToTagResponses(result)
-	response := helper.SuccessResponsePaginate("paginate tags", "get", meta, query, page, convertResponse)
+	response := helper.SuccessResponsePaginate("paginate tags", "get", meta, query, link, convertResponse)
 
 	c.JSON(http.StatusOK, response)
 }
