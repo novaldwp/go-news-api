@@ -4,12 +4,14 @@ import (
 	"errors"
 	"time"
 
+	"github.com/novaldwp/go-news-api/app/helper"
 	"github.com/novaldwp/go-news-api/app/requests"
 	"github.com/novaldwp/go-news-api/models"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type UserServiceInterface interface {
+	Pagination(pagination *helper.Pagination, query *helper.PaginationQuery, link *helper.PaginationLink, urlPath string) ([]models.User, error)
 	GetUsers(status string) ([]models.User, error)
 	GetUserById(userId int) (models.User, error)
 	CreateUser(userRequest requests.CreateUserRequest) error
@@ -156,4 +158,17 @@ func (s *userService) DeleteUser(userId int) error {
 	err := s.repository.DeleteUser(user)
 
 	return err
+}
+
+func (s *userService) Pagination(pagination *helper.Pagination, query *helper.PaginationQuery, link *helper.PaginationLink, appPATH string) ([]models.User, error) {
+	result, err := s.repository.Pagination(pagination, query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// set pagination link
+	helper.GeneratePaginationLink(appPATH, pagination, query, link)
+
+	return result, nil
 }

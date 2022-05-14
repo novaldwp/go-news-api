@@ -1,11 +1,16 @@
 package user
 
 import (
+	"fmt"
+	"math"
+
+	"github.com/novaldwp/go-news-api/app/helper"
 	"github.com/novaldwp/go-news-api/models"
 	"gorm.io/gorm"
 )
 
 type UserRepositoryInterface interface {
+	Pagination(pagination *helper.Pagination, query *helper.PaginationQuery) ([]models.User, error)
 	GetUsers() ([]models.User, error)
 	GetActiveUsers() ([]models.User, error)
 	GetInactiveUsers() ([]models.User, error)
@@ -112,4 +117,28 @@ func (r *userRepository) DeleteUser(user models.User) error {
 	err := r.db.Delete(&user).Error
 
 	return err
+}
+
+func (r *userRepository) Pagination(p *helper.Pagination, q *helper.PaginationQuery) ([]models.User, error) {
+	var users []models.User
+	var totalRows int64 = 0
+
+	// get data tags
+	if err := r.db.Order(fmt.Sprintf("%s %s", q.Order, q.Sort)).Limit(q.GetLimit()).Offset(q.GetOffset()).Find(&users).Error; err != nil {
+		return nil, err
+	}
+
+	// get total rows
+	if err := r.db.Model(&users).Count(&totalRows).Error; err != nil {
+		return nil, err
+	}
+
+	// get total page
+	totalPages := int(math.Ceil(float64(totalRows) / float64(q.GetLimit())))
+
+	// set pagination value
+	p.TotalRows = int(totalRows)
+	p.TotalPages = totalPages
+
+	return users, nil
 }

@@ -54,6 +54,33 @@ func (h *userHandler) GetUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+// get all pagination tags with query parameters e.g => page, limit, order, sort
+func (h *userHandler) Paginate(c *gin.Context) {
+	// set app url
+	appHOST := c.Request.Host     // www.example.com/
+	urlPATH := c.Request.URL.Path // api/v1/handler/function
+	appPATH := appHOST + urlPATH  // www.example.com/api/v1/handler/function
+
+	// generate struct helper
+	meta := helper.NewPagination()
+	query := helper.NewPaginationQuery(c)
+	link := helper.NewPaginationLink()
+
+	// get result pagination
+	result, err := h.uService.Pagination(meta, query, link, appPATH)
+
+	if err != nil {
+		response := helper.ErrorResponse(err)
+		c.JSON(http.StatusInternalServerError, response)
+	}
+
+	// convert result
+	convertResponse := responses.ToUserResponses(result)
+	response := helper.SuccessResponsePaginate("paginate users", "get", meta, query, link, convertResponse)
+
+	c.JSON(http.StatusOK, response)
+}
+
 // get a single user by param id
 func (h *userHandler) GetUser(c *gin.Context) {
 	// convert param id to int

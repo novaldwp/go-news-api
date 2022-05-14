@@ -33,6 +33,7 @@ func UserRoutes(db *gorm.DB, v1 *gin.RouterGroup) {
 	route := v1.Group("/users")
 	{
 		route.GET("/", userHandler.GetUsers)
+		route.GET("/paginate", userHandler.Paginate)
 		route.GET("/:id", userHandler.GetUser)
 		route.POST("/", userHandler.CreateUser)
 		route.PATCH("/:id", userHandler.UpdateUser)
