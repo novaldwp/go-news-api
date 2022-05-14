@@ -7,8 +7,8 @@ type UserResponse struct {
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 	Email     string `json:"email"`
-	IsVerif   bool   `json:"is_verif"` // using type data pointer, so you can update value with "false / 0"
-	Status    bool   `json:"status"`   // using type data pointer, so you can update value with "false / 0"
+	IsVerif   *bool  `json:"is_verif"` // using type data pointer, so you can update value with "false / 0"
+	Status    *bool  `json:"status"`   // using type data pointer, so you can update value with "false / 0"
 }
 
 func ToUserResponse(user models.User) UserResponse {
@@ -17,8 +17,8 @@ func ToUserResponse(user models.User) UserResponse {
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
 		Email:     user.Email,
-		IsVerif:   *user.IsVerif,
-		Status:    *user.Status,
+		IsVerif:   user.IsVerif,
+		Status:    user.Status,
 	}
 }
 
